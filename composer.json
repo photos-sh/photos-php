@@ -1,0 +1,45 @@
+{
+    "name": "photos-sh/photos",
+    "description": "PHP client for the Photos.sh API: background removal, resizing, upscaling, object and text removal, marketplace checks and fixes, barcode, text and label reading.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["photos.sh", "image", "background removal", "resize", "upscale", "ocr", "barcode", "marketplace", "api", "sdk"],
+    "homepage": "https://photos.sh",
+    "support": {
+        "issues": "https://github.com/photos-sh/photos-php/issues",
+        "source": "https://github.com/photos-sh/photos-php"
+    },
+    "require": {
+        "php": ">=8.3",
+        "ext-json": "*"
+    },
+    "suggest": {
+        "ext-curl": "For the default transport (CurlTransport). Not needed when you pass your own Transport."
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5 || ^11.5 || ^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PhotosSh\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PhotosSh\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --testsuite unit,transport",
+        "test:integration": "phpunit --testsuite integration",
+        "stan": "phpstan analyse --no-progress",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "check": ["@cs", "@stan", "@test"]
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

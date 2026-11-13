@@ -1,0 +1,9 @@
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - tests/fixtures/*
+    tmpDir: .phpstan.cache
+    treatPhpDocTypesAsCertain: false
