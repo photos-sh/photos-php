@@ -185,7 +185,7 @@ use PhotosSh\Transport\Transport;
  */
 class Photos
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.2.1';
 
     public const DEFAULT_BASE_URL = 'https://api.photos.sh';
 

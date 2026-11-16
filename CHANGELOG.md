@@ -6,6 +6,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+- `Photos::VERSION` (sent in the User-Agent) says the library's version: it
+  said 1.0.0 in 1.0.0 to 1.2.0.
+
+## 1.2.0 (2026-11-16)
+
 - `run` recipes can read the photo: what the steps `[barcodes]` and `[text]`
   read comes back on the image result as `barcodes` (the same shape as
   `readBarcodes` gives), `text` (the lines, top to bottom) and
@@ -16,6 +21,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   reading steps (Vallic/photos#7); an older engine answers `422`.
 - `preset(name)` returns a built-in preset's recipe as TOML, to start a recipe
   of your own from. An unknown name is `404 not_found` (`NotFoundException`).
+
+## 1.1.0 (2026-11-16)
+
 - `removeBackground` takes `studio`: for studio shots (a product on a plain,
   light backdrop, as in a light tent), also keep what clearly stands out from
   the backdrop and touches the product, such as the gift box, case or lid
@@ -26,7 +34,7 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   canvas, and `subjectFound` is `false`. The docs no longer say the canvas
   comes back empty.
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-11-13)
 
 First version.
 
