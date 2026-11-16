@@ -4,6 +4,18 @@ All notable changes to this library are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the library
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- `removeBackground` takes `studio`: for studio shots (a product on a plain,
+  light backdrop, as in a light tent), also keep what clearly stands out from
+  the backdrop and touches the product, such as the gift box, case or lid
+  shown with a bottle. Shadows and the floor are left out. Needs engine
+  0.1.10.
+- When no subject is found (one covering under 3% of the photo does not
+  count), `remove-background` returns the photo unchanged, with or without a
+  canvas, and `subjectFound` is `false`. The docs no longer say the canvas
+  comes back empty.
+
 ## 1.0.0 (unreleased)
 
 First version.

@@ -88,6 +88,7 @@ $result = $photos->removeBackground(
     crop: true,             // crop to the subject
     padding: 20,            // margin around the subject when cropping, px
     mask: false,            // true: return the greyscale alpha mask
+    studio: false,          // true: a studio shot; also keep its box or case
 );
 ```
 
@@ -107,7 +108,7 @@ $result = $photos->removeBackground(
 );
 
 if ($result->subjectFound === false) {
-    echo "No subject in the photo: the canvas is empty.\n";
+    echo "No subject in the photo: it came back unchanged.\n";
 }
 ```
 
@@ -116,8 +117,16 @@ Behind the subject goes at most one of: a colour (`background`), an image
 photo's own background, blurred (`blur`, 1 to 100). `crop` does not go with a
 canvas or with `blur`, and `mask` takes none of these options.
 
-`subjectFound` is `false` when a canvas was asked for and the photo has no
-subject. In every other case it is `null`: the API does not say.
+`subjectFound` is `false` when no subject is found (one covering under 3% of
+the photo does not count): the photo then comes back unchanged, or with `mask`
+the mask. In every other case it is `null`: the API does not say.
+
+For studio shots (a product on a plain, light backdrop, as in a light tent),
+`studio: true` also keeps what clearly stands out from the backdrop and
+touches the product, such as the gift box, case or lid shown with a bottle, or
+a pale box the model left half transparent. Shadows and the floor below the
+product are left out. A photo without a plain light backdrop is cut out as
+without it.
 
 ### Resize, convert and compress
 

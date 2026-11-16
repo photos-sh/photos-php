@@ -245,6 +245,9 @@ class Photos
      * and something behind it. Give at most one of `background`,
      * `backgroundImage` and `blur`.
      *
+     * When no subject is found (one covering under 3% of the photo does not
+     * count), the photo comes back unchanged, with `subjectFound` false.
+     *
      * @param string|null       $format          output format: `png` (the default), `jpg`, `webp`, `avif`
      * @param int|null          $quality         1-100, for lossy formats
      * @param string|null       $background      composite onto a colour (`white`, `#rrggbb`); omit for transparency
@@ -262,6 +265,11 @@ class Photos
      * @param bool|null         $reflection      a fading mirror image under the subject; leave room below it
      * @param int|float|null    $blur            keep the photo's own background, blurred: 1 (slight) to 100
      * @param string|Input|null $backgroundImage an image to put behind the subject, scaled to cover the result
+     * @param bool|null         $studio          for studio shots (a product on a plain, light backdrop, as in a
+     *                                           light tent): also keep what clearly stands out from the backdrop
+     *                                           and touches the product, such as the gift box, case or lid shown
+     *                                           with a bottle; shadows and the floor are left out. A photo without
+     *                                           a plain light backdrop is cut out as without it
      */
     public function removeBackground(
         string|Input $image,
@@ -279,6 +287,7 @@ class Photos
         ?bool $reflection = null,
         int|float|null $blur = null,
         string|Input|null $backgroundImage = null,
+        ?bool $studio = null,
     ): RemoveBackgroundResult {
         $extra = $backgroundImage !== null ? ['background' => Input::from($backgroundImage)] : [];
 
@@ -296,6 +305,7 @@ class Photos
             'shadow' => $shadow,
             'reflection' => $reflection,
             'blur' => $blur,
+            'studio' => $studio,
         ], $extra));
     }
 

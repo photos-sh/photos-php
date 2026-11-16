@@ -101,8 +101,8 @@ final class JobItemResult
     /**
      * The result of a `remove-background` item, with `subjectFound` read
      * from `X-Subject-Found` exactly as {@see Photos::removeBackground()}
-     * reads it: null when the header is absent, as it is unless a canvas
-     * was asked for and the photo has no subject.
+     * reads it: null when the header is absent, as it is unless no subject
+     * was found.
      *
      * @throws PhotosException when the result is not an image
      */

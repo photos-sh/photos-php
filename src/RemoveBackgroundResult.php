@@ -12,9 +12,10 @@ use PhotosSh\Transport\Response;
 final class RemoveBackgroundResult extends ImageResult
 {
     /**
-     * False when a canvas was asked for (`width` and `height`) and the photo
-     * has no subject: the canvas is then empty (`X-Subject-Found`). Null in
-     * every other case: the API does not say.
+     * False when no subject is found (one covering under 3% of the photo
+     * does not count): the photo then comes back unchanged, or with `mask`
+     * the mask (`X-Subject-Found`). Null in every other case: the API does
+     * not say.
      */
     public readonly ?bool $subjectFound;
 
