@@ -7,6 +7,7 @@ namespace PhotosSh;
 use PhotosSh\Exception\ApiException;
 use PhotosSh\Exception\ConnectionException;
 use PhotosSh\Exception\InvalidInputException;
+use PhotosSh\Exception\NotFoundException;
 use PhotosSh\Exception\PhotosException;
 use PhotosSh\Exception\TimeoutException;
 use PhotosSh\Exception\WaitTimeoutException;
@@ -823,8 +824,12 @@ class Photos
     /**
      * Applies a built-in preset or a recipe. Give one of the two.
      *
+     * A recipe's reading steps, `[barcodes]` and `[text]`, leave the image
+     * as it is; what they read comes back as the result's `barcodes`, `text`
+     * and `textTruncated`.
+     *
      * @param string|null $preset a preset's name ({@see Photos::presets()})
-     * @param string|null $recipe a recipe as TOML
+     * @param string|null $recipe a recipe as TOML ({@see Photos::preset()} gives a preset's)
      */
     public function run(string|Input $image, ?string $preset = null, ?string $recipe = null): ImageResult
     {
@@ -1019,6 +1024,19 @@ class Photos
     {
         /** @var list<Preset> */
         return $this->list($this->get('/v1/presets'));
+    }
+
+    /**
+     * A built-in preset's recipe, as TOML: a starting point for a recipe of
+     * your own for {@see Photos::run()}.
+     *
+     * @param string $name a preset's name ({@see Photos::presets()})
+     *
+     * @throws NotFoundException when there is no preset of that name
+     */
+    public function preset(string $name): string
+    {
+        return $this->get('/v1/presets/' . rawurlencode($name))->body;
     }
 
     /**

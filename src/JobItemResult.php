@@ -47,7 +47,9 @@ final class JobItemResult
      * {@see JobItemResult::removeBackground()}, {@see JobItemResult::crop()},
      * {@see JobItemResult::vectorize()}, {@see JobItemResult::blurFaces()},
      * {@see JobItemResult::idPhoto()}, {@see JobItemResult::select()},
-     * {@see JobItemResult::restoreFaces()}.
+     * {@see JobItemResult::restoreFaces()}. The image of a `run` item
+     * carries what its recipe's reading steps read (`barcodes`, `text`,
+     * `textTruncated`), as {@see Photos::run()}'s does.
      *
      * @throws PhotosException when the result is not an image
      */

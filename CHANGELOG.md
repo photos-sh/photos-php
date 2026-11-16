@@ -6,6 +6,16 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+- `run` recipes can read the photo: what the steps `[barcodes]` and `[text]`
+  read comes back on the image result as `barcodes` (the same shape as
+  `readBarcodes` gives), `text` (the lines, top to bottom) and
+  `textTruncated`, from the `X-Barcodes`, `X-Text` and `X-Text-Truncated`
+  headers. `barcodes` and `text` are null when the recipe has no such step
+  (or the header cannot be read) and empty when the step found nothing. A
+  `run` job item's `image()` carries them too. Needs the engine release with
+  reading steps (Vallic/photos#7); an older engine answers `422`.
+- `preset(name)` returns a built-in preset's recipe as TOML, to start a recipe
+  of your own from. An unknown name is `404 not_found` (`NotFoundException`).
 - `removeBackground` takes `studio`: for studio shots (a product on a plain,
   light backdrop, as in a light tent), also keep what clearly stands out from
   the backdrop and touches the product, such as the gift box, case or lid

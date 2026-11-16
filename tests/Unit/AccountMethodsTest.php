@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhotosSh\Tests\Unit;
 
 use PhotosSh\Exception\ApiException;
+use PhotosSh\Exception\NotFoundException;
 use PhotosSh\Exception\PhotosException;
 use PhotosSh\Tests\Support\ClientTestCase;
 use PhotosSh\Tests\Support\FakeTransport;
@@ -32,6 +33,43 @@ final class AccountMethodsTest extends ClientTestCase
 
         self::assertSame('/api/v1/presets', $this->sent()->path);
         self::assertSame('web', $presets[0]['name']);
+    }
+
+    public function testPreset(): void
+    {
+        $toml = "[resize]\nwidth = 2000\n\n[background]\nfill = \"#ffffff\"\n";
+        $photos = $this->client(new Response(200, ['Content-Type' => 'application/toml; charset=utf-8'], $toml));
+
+        $recipe = $photos->preset('marketplace');
+
+        self::assertSame('GET', $this->sent()->method);
+        self::assertSame('/api/v1/presets/marketplace', $this->sent()->path);
+        self::assertSame('', $this->sent()->query);
+        self::assertSame('Bearer ' . self::KEY, $this->sent()->request->headers['Authorization']);
+        self::assertSame($toml, $recipe);
+    }
+
+    public function testPresetEncodesTheName(): void
+    {
+        $photos = $this->client(new Response(200, ['Content-Type' => 'application/toml'], ''));
+
+        $photos->preset('a b/c?d');
+
+        self::assertSame(self::BASE . '/v1/presets/a%20b%2Fc%3Fd', $this->transport->last()->url);
+    }
+
+    public function testAnUnknownPresetIsNotFound(): void
+    {
+        $photos = $this->client(FakeTransport::error(404, 'not_found', 'No preset named "nope".'));
+
+        try {
+            $photos->preset('nope');
+            self::fail('Expected a NotFoundException.');
+        } catch (NotFoundException $e) {
+            self::assertSame(404, $e->status);
+            self::assertSame(ApiException::NOT_FOUND, $e->errorCode);
+            self::assertSame('No preset named "nope".', $e->getMessage());
+        }
     }
 
     public function testMarketplaces(): void

@@ -10,6 +10,8 @@ use PhotosSh\Transport\Response;
 /**
  * An image the API returned. Methods whose response says more about the
  * image return a subclass with those values.
+ *
+ * @phpstan-import-type Barcode from Photos
  */
 class ImageResult
 {
@@ -34,6 +36,35 @@ class ImageResult
     /** @var array<string, string> all response headers, names in lower case */
     public readonly array $headers;
 
+    /**
+     * The barcodes a recipe's `[barcodes]` step read (`X-Barcodes`), in the
+     * shape {@see Photos::readBarcodes()} gives them; empty when the step
+     * found none. Null when the header is absent (the recipe has no such
+     * step, or the call was not {@see Photos::run()}), and also when it is
+     * not a JSON array of barcodes: it is then left unread rather than
+     * thrown on.
+     *
+     * @var list<Barcode>|null
+     */
+    public readonly ?array $barcodes;
+
+    /**
+     * The lines a recipe's `[text]` step read, top to bottom (`X-Text`);
+     * empty when the step found none. Null when the header is absent (the
+     * recipe has no such step, or the call was not {@see Photos::run()}),
+     * and also when it is not a JSON array of strings: it is then left
+     * unread rather than thrown on.
+     *
+     * @var list<string>|null
+     */
+    public readonly ?array $text;
+
+    /**
+     * True when `text` leaves out lines that did not fit in the header
+     * (`X-Text-Truncated`); false otherwise.
+     */
+    public readonly bool $textTruncated;
+
     public function __construct(Response $response)
     {
         $this->bytes = $response->body;
@@ -43,6 +74,9 @@ class ImageResult
         $this->height = $this->intHeader('X-Image-Height');
         $this->quality = $this->intHeader('X-Image-Quality');
         $this->serverTiming = $response->header('Server-Timing');
+        $this->barcodes = $this->barcodesHeader('X-Barcodes');
+        $this->text = $this->stringsHeader('X-Text');
+        $this->textTruncated = $this->boolHeader('X-Text-Truncated') === true;
     }
 
     /**
@@ -118,5 +152,71 @@ class ImageResult
         $items = array_map(trim(...), explode(',', $this->header($name) ?? ''));
 
         return array_values(array_filter($items, static fn(string $item): bool => $item !== ''));
+    }
+
+    /**
+     * A JSON array of barcodes; null when the header is absent or is not
+     * one.
+     *
+     * @return list<Barcode>|null
+     */
+    private function barcodesHeader(string $name): ?array
+    {
+        $decoded = $this->jsonListHeader($name);
+        if ($decoded === null) {
+            return null;
+        }
+        $barcodes = [];
+        foreach ($decoded as $barcode) {
+            if (
+                !is_array($barcode)
+                || !is_string($barcode['format'] ?? null)
+                || !is_string($barcode['value'] ?? null)
+                || (isset($barcode['gs1']) && !is_string($barcode['gs1']))
+            ) {
+                return null;
+            }
+            /** @var Barcode $barcode */
+            $barcodes[] = $barcode;
+        }
+
+        return $barcodes;
+    }
+
+    /**
+     * A JSON array of strings; null when the header is absent or is not one.
+     *
+     * @return list<string>|null
+     */
+    private function stringsHeader(string $name): ?array
+    {
+        $decoded = $this->jsonListHeader($name);
+        if ($decoded === null) {
+            return null;
+        }
+        foreach ($decoded as $item) {
+            if (!is_string($item)) {
+                return null;
+            }
+        }
+
+        /** @var list<string> $decoded */
+        return $decoded;
+    }
+
+    /**
+     * A JSON array; null when the header is absent or is not one.
+     *
+     * @return list<mixed>|null
+     */
+    private function jsonListHeader(string $name): ?array
+    {
+        $value = $this->header($name);
+        if ($value === null) {
+            return null;
+        }
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded) && array_is_list($decoded) ? $decoded : null;
     }
 }

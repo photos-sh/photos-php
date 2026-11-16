@@ -284,6 +284,32 @@ final class ImageMethodsTest extends ClientTestCase
         self::assertSame('recipe.toml', $sent->parts[1]['filename']);
     }
 
+    public function testRunReturnsWhatTheReadingStepsRead(): void
+    {
+        $photos = $this->client(FakeTransport::image('jar', [
+            'x-barcodes' => '[{"format":"EAN-13","value":"3850104010017","gs1":"3850104010017"}]',
+            'x-text' => '["Pr\\u0161ut","500 g"]',
+        ]));
+
+        $result = $photos->run(self::fixture('product.png'), recipe: "[barcodes]\nall_formats = true\n\n[text]\n");
+
+        self::assertSame([['format' => 'EAN-13', 'value' => '3850104010017', 'gs1' => '3850104010017']], $result->barcodes);
+        self::assertSame(['Pršut', '500 g'], $result->text);
+        self::assertFalse($result->textTruncated);
+        self::assertSame('jar', $result->bytes);
+    }
+
+    public function testRunWithoutReadingStepsReadsNothing(): void
+    {
+        $photos = $this->client(FakeTransport::image());
+
+        $result = $photos->run(self::fixture('product.png'), preset: 'marketplace');
+
+        self::assertNull($result->barcodes);
+        self::assertNull($result->text);
+        self::assertFalse($result->textTruncated);
+    }
+
     public function testFixReturnsTheVerdict(): void
     {
         $photos = $this->client(FakeTransport::image('fixed', [

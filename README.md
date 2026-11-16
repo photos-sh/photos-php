@@ -400,7 +400,40 @@ foreach ($photos->presets() as $preset) {
 
 $result = $photos->run('shoe.jpg', preset: 'marketplace');
 $result = $photos->run('shoe.jpg', recipe: file_get_contents('my-recipe.toml'));
+
+echo $photos->preset('marketplace');  // a preset's recipe, as TOML, to start your own from
 ```
+
+`preset()` throws `NotFoundException` for a name that is not a preset.
+
+A recipe can also read the photo. The steps `[barcodes]` (with
+`all_formats = true` for QR, Code 128 and the rest) and `[text]` leave the
+image as it is, and what they read comes with the result:
+
+```php
+$result = $photos->run('jar.jpg', recipe: <<<'TOML'
+    [barcodes]
+    all_formats = true
+
+    [text]
+
+    [output]
+    max_side = 1600
+    TOML);
+
+foreach ($result->barcodes ?? [] as $barcode) {
+    echo $barcode['format'], ' ', $barcode['value'], ' ', $barcode['gs1'] ?? '-', "\n";
+}
+echo implode("\n", $result->text ?? []), "\n";  // the lines, top to bottom
+if ($result->textTruncated) {
+    echo "(more lines than fit in the header)\n";
+}
+```
+
+`barcodes` and `text` are null when the recipe has no such step, and empty
+when the step found nothing. A `run` job item's `image()` carries them too.
+Reading steps need the engine release that has them (Vallic/photos#7); an
+older engine refuses the recipe with a `422` `ApiException`.
 
 ## Check and fix
 

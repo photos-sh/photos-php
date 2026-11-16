@@ -91,6 +91,79 @@ final class ResultsTest extends TestCase
         self::assertNull((new RemoveBackgroundResult($with(null)))->subjectFound, 'absent is unknown, not false');
     }
 
+    public function testTheReadingStepsHeaders(): void
+    {
+        $result = new ImageResult(new Response(200, [
+            'Content-Type' => 'image/png',
+            'X-Barcodes' => '[{"format":"EAN-13","value":"3850104010017","gs1":"3850104010017"},'
+                . '{"format":"QR","value":"https://example.com","gs1":null}]',
+            'X-Text' => '["Pr\\u0161ut","500 g","\\ud83c\\udf77 Ter\\u00e1n"]',
+            'X-Text-Truncated' => 'true',
+        ], 'bytes'));
+
+        self::assertSame([
+            ['format' => 'EAN-13', 'value' => '3850104010017', 'gs1' => '3850104010017'],
+            ['format' => 'QR', 'value' => 'https://example.com', 'gs1' => null],
+        ], $result->barcodes);
+        self::assertSame(['Pršut', '500 g', "\u{1F377} Terán"], $result->text);
+        self::assertTrue($result->textTruncated);
+    }
+
+    public function testAbsentReadingStepsHeadersAreNull(): void
+    {
+        $result = new ImageResult(new Response(200, ['Content-Type' => 'image/png'], 'bytes'));
+
+        self::assertNull($result->barcodes, 'absent: the recipe has no such step');
+        self::assertNull($result->text, 'absent: the recipe has no such step');
+        self::assertFalse($result->textTruncated);
+    }
+
+    public function testReadingStepsThatFoundNothingAreEmpty(): void
+    {
+        $result = new ImageResult(new Response(200, [
+            'X-Barcodes' => '[]',
+            'X-Text' => ' [] ',
+            'X-Text-Truncated' => 'false',
+        ], 'bytes'));
+
+        self::assertSame([], $result->barcodes);
+        self::assertSame([], $result->text);
+        self::assertFalse($result->textTruncated);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unreadableJson(): iterable
+    {
+        yield 'not JSON' => ['[{"format":'];
+        yield 'empty' => [''];
+        yield 'an object' => ['{"format":"EAN-13","value":"1"}'];
+        yield 'a string' => ['"Pršut"'];
+        yield 'null' => ['null'];
+        yield 'a list with a number' => ['[1]'];
+        yield 'a barcode without a value' => ['[{"format":"EAN-13"}]'];
+        yield 'a barcode with a numeric gs1' => ['[{"format":"EAN-13","value":"1","gs1":1}]'];
+        yield 'a line that is not a string' => ['["Pršut",null]'];
+    }
+
+    #[DataProvider('unreadableJson')]
+    public function testAnUnreadableReadingStepsHeaderIsNullNotAnError(string $value): void
+    {
+        $result = new ImageResult(new Response(200, ['X-Barcodes' => $value, 'X-Text' => $value], 'bytes'));
+
+        self::assertNull($result->barcodes);
+        self::assertNull($result->text);
+    }
+
+    public function testASubclassReadsTheReadingStepsHeadersToo(): void
+    {
+        $result = new RemoveBackgroundResult(new Response(200, ['X-Text' => '["SALE"]'], 'bytes'));
+
+        self::assertSame(['SALE'], $result->text);
+        self::assertNull($result->barcodes);
+    }
+
     public function testVectorizeResult(): void
     {
         $result = new VectorizeResult(new Response(200, [
@@ -351,6 +424,24 @@ final class ResultsTest extends TestCase
         self::assertTrue($bare->passed);
         self::assertSame([], $bare->findings);
         self::assertNull($bare->headMm);
+    }
+
+    public function testJobItemResultOfARunJobWithReadingSteps(): void
+    {
+        $image = self::imageItem([
+            'x-barcodes' => '[{"format":"EAN-13","value":"3850104010017","gs1":null}]',
+            'x-text' => '["Pr\\u0161ut"]',
+            'x-text-truncated' => 'true',
+        ])->image();
+
+        self::assertSame([['format' => 'EAN-13', 'value' => '3850104010017', 'gs1' => null]], $image->barcodes);
+        self::assertSame(['Pršut'], $image->text);
+        self::assertTrue($image->textTruncated);
+
+        $plain = self::imageItem()->image();
+        self::assertNull($plain->barcodes);
+        self::assertNull($plain->text);
+        self::assertFalse($plain->textTruncated);
     }
 
     public function testJobItemResultOfAVectorizeJob(): void
