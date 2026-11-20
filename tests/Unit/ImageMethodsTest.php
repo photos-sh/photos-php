@@ -107,6 +107,25 @@ final class ImageMethodsTest extends ClientTestCase
         self::assertFalse($result->subjectFound, 'no subject: the photo back, unchanged');
     }
 
+    public function testRemoveBackgroundSendsTheModel(): void
+    {
+        $photos = $this->client(FakeTransport::image('cutout'), FakeTransport::image('cutout'), FakeTransport::image('cutout'));
+
+        $result = $photos->removeBackground(self::fixture('product.png'), crop: true, studio: true, model: 'lumen');
+
+        $sent = $this->sent();
+        self::assertSame('/api/v1/remove-background', $sent->path);
+        self::assertSame('crop=true&studio=true&model=lumen', $sent->query);
+        self::assertSame(['image'], $sent->partNames());
+        self::assertSame('cutout', $result->bytes);
+
+        $photos->removeBackground(self::fixture('product.png'), model: 'nova');
+        self::assertSame('model=nova', $this->sent()->query, 'a model the API adds later is sent as it is');
+
+        $photos->removeBackground(self::fixture('product.png'), model: null);
+        self::assertSame('', $this->sent()->query, 'left out, so the API uses its default');
+    }
+
     public function testRemoveBackgroundSendsTheBackgroundImageAsASecondPart(): void
     {
         $photos = $this->client(FakeTransport::image(), FakeTransport::image());

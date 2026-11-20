@@ -89,6 +89,7 @@ $result = $photos->removeBackground(
     padding: 20,            // margin around the subject when cropping, px
     mask: false,            // true: return the greyscale alpha mask
     studio: false,          // true: a studio shot; also keep its box or case
+    model: 'atlas',         // the model that finds the subject: atlas (default), lumen, muse
 );
 ```
 
@@ -127,6 +128,23 @@ touches the product, such as the gift box, case or lid shown with a bottle, or
 a pale box the model left half transparent. Shadows and the floor below the
 product are left out. A photo without a plain light backdrop is cut out as
 without it.
+
+`model` picks the model that finds the subject. Each costs the same; try
+another when one drops part of what you sell. Left out, the API uses `atlas`.
+
+| Model | Recommended for |
+|---|---|
+| `atlas` (default) | Everyday product photos: a product alone or with its box, on any backdrop. |
+| `lumen` | Pale packaging on a light backdrop, such as a cream or wooden box beside a bottle, and close-ups where the product fills the photo. On those, `atlas` can keep the bottle and drop the box. It may keep a dark backdrop at the photo's edge, and can cut away part of an open frame or wire stand. |
+| `muse` | People: portraits, and models wearing the product. |
+
+```php
+$boxed = $photos->removeBackground('perfume.jpg', studio: true, model: 'lumen');
+$portrait = $photos->removeBackground('model.jpg', model: 'muse');
+```
+
+`model` is a string, so a model the API adds later works without a new
+version of this library. It works with `studio`.
 
 ### Resize, convert and compress
 
@@ -632,7 +650,8 @@ The operations are `run`, `remove-background`, `resize`, `upscale`, `ocr`,
 `palette`, `watermark`, `expand`, `vectorize`, `faces`, `blur-faces`,
 `id-photo`, `denoise`, `colorize`, `select`, `restore-faces` and `caption`.
 A job item is one image, so a `watermark` job takes `text` only and a
-`remove-background` job no background image.
+`remove-background` job no background image (`model` and `studio` it takes as
+the method does: `params: ['model' => 'lumen', 'studio' => true]`).
 
 An option that repeats is a list. For `select`, each point is the string
 `"x,y"`:

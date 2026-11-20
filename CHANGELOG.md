@@ -6,6 +6,18 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## 1.3.0 (2026-11-20)
+
+- `removeBackground` takes `model`, the model that finds the subject: `atlas`
+  (the API's default) for everyday product photos, `lumen` for pale packaging
+  on a light backdrop and close-ups where the product fills the photo, `muse`
+  for people. Each costs the same. It is a string, so a model the API adds
+  later works without a new release; it is sent only when given, and works
+  with `studio`. A `remove-background` job takes it in `params`. Needs engine
+  0.1.14.
+
+## 1.2.1 (2026-11-16)
+
 - `Photos::VERSION` (sent in the User-Agent) says the library's version: it
   said 1.0.0 in 1.0.0 to 1.2.0.
 

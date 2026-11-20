@@ -185,7 +185,7 @@ use PhotosSh\Transport\Transport;
  */
 class Photos
 {
-    public const VERSION = '1.2.1';
+    public const VERSION = '1.3.0';
 
     public const DEFAULT_BASE_URL = 'https://api.photos.sh';
 
@@ -271,6 +271,17 @@ class Photos
      *                                           and touches the product, such as the gift box, case or lid shown
      *                                           with a bottle; shadows and the floor are left out. A photo without
      *                                           a plain light backdrop is cut out as without it
+     * @param string|null       $model           the model that finds the subject; each costs the same, so try
+     *                                           another when one drops part of what you sell. Left out, the API
+     *                                           uses its default, `atlas`: everyday product photos, a product
+     *                                           alone or with its box, on any backdrop. `lumen`: pale packaging
+     *                                           on a light backdrop, such as a cream or wooden box beside a
+     *                                           bottle, and close-ups where the product fills the photo (on
+     *                                           those, `atlas` can keep the bottle and drop the box); it may keep
+     *                                           a dark backdrop at the photo's edge, and can cut away part of an
+     *                                           open frame or wire stand. `muse`: people, in portraits and as
+     *                                           models wearing the product. Any other name is sent as it is, for
+     *                                           models the API adds later. Works with `studio`
      */
     public function removeBackground(
         string|Input $image,
@@ -289,6 +300,7 @@ class Photos
         int|float|null $blur = null,
         string|Input|null $backgroundImage = null,
         ?bool $studio = null,
+        ?string $model = null,
     ): RemoveBackgroundResult {
         $extra = $backgroundImage !== null ? ['background' => Input::from($backgroundImage)] : [];
 
@@ -307,6 +319,7 @@ class Photos
             'reflection' => $reflection,
             'blur' => $blur,
             'studio' => $studio,
+            'model' => $model,
         ], $extra));
     }
 
@@ -1077,6 +1090,8 @@ class Photos
      *                                                            `select`: `['point' => ['160,130', '170,200']]`.
      *                                                            A job item is one image: `watermark` takes `text`
      *                                                            only, and `remove-background` no background image
+     *                                                            (its `model` and `studio` go as the method sends
+     *                                                            them, e.g. `['model' => 'lumen']`)
      * @param string|null                             $recipe     recipe TOML, for operation `run`
      * @param string|null                             $webhookUrl called with a signed `job.completed` event
      *                                                            ({@see Webhook::verify()})
