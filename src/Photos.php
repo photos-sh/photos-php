@@ -185,7 +185,7 @@ use PhotosSh\Transport\Transport;
  */
 class Photos
 {
-    public const VERSION = '1.3.0';
+    public const VERSION = '1.4.0';
 
     public const DEFAULT_BASE_URL = 'https://api.photos.sh';
 
@@ -282,6 +282,25 @@ class Photos
      *                                           open frame or wire stand. `muse`: people, in portraits and as
      *                                           models wearing the product. Any other name is sent as it is, for
      *                                           models the API adds later. Works with `studio`
+     * @param int|float|null    $feather         how soft the cutout's edge is: a blur of this many pixels across
+     *                                           it, 0 to 10. Left out, it grows with the photo (0.7 px for every
+     *                                           1000 px of its long side); 0 is the model's hard edge
+     * @param int|float|null    $smooth          irons out the ripples of the cutout's outline, 0 (as the model
+     *                                           draws it, the default) to 10; from about 4 it rounds small corners
+     *                                           and breaks up thin parts such as a wire stand
+     * @param int|float|null    $shift           moves the cutout's edge, in pixels: inward when negative, outward
+     *                                           when positive, up to 10 either way. -1 to -2 trims the light rim
+     *                                           a dark product shows on a dark background; a part thinner than
+     *                                           twice an inward shift goes
+     * @param int|float|null    $hardness        makes the edge crisper, after the feather: 0 (as feathered, the
+     *                                           default) to 100 (about a pixel wide, still smooth). It sharpens a
+     *                                           light rim too: on a dark background, pair it with a small
+     *                                           negative `shift`
+     * @param bool|null         $decontaminate   clean the old background's colour out of the soft edge, which the
+     *                                           API does unless told otherwise; false keeps the photo's own
+     *                                           colours there
+     * @param bool|null         $solidify        make semi-transparent areas inside the subject opaque, for an
+     *                                           opaque product; wrong for glass, smoke or hair
      */
     public function removeBackground(
         string|Input $image,
@@ -301,6 +320,12 @@ class Photos
         string|Input|null $backgroundImage = null,
         ?bool $studio = null,
         ?string $model = null,
+        int|float|null $feather = null,
+        int|float|null $smooth = null,
+        int|float|null $shift = null,
+        int|float|null $hardness = null,
+        ?bool $decontaminate = null,
+        ?bool $solidify = null,
     ): RemoveBackgroundResult {
         $extra = $backgroundImage !== null ? ['background' => Input::from($backgroundImage)] : [];
 
@@ -320,6 +345,12 @@ class Photos
             'blur' => $blur,
             'studio' => $studio,
             'model' => $model,
+            'feather' => $feather,
+            'smooth' => $smooth,
+            'shift' => $shift,
+            'hardness' => $hardness,
+            'decontaminate' => $decontaminate,
+            'solidify' => $solidify,
         ], $extra));
     }
 
@@ -1090,8 +1121,9 @@ class Photos
      *                                                            `select`: `['point' => ['160,130', '170,200']]`.
      *                                                            A job item is one image: `watermark` takes `text`
      *                                                            only, and `remove-background` no background image
-     *                                                            (its `model` and `studio` go as the method sends
-     *                                                            them, e.g. `['model' => 'lumen']`)
+     *                                                            (its `model`, `studio` and edge options go as
+     *                                                            the method sends them, e.g. `['model' => 'lumen',
+     *                                                            'shift' => -1.5]`)
      * @param string|null                             $recipe     recipe TOML, for operation `run`
      * @param string|null                             $webhookUrl called with a signed `job.completed` event
      *                                                            ({@see Webhook::verify()})

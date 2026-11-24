@@ -39,7 +39,7 @@ final class JobsTest extends ClientTestCase
         $job = $photos->createJob(
             'remove-background',
             ['https://example.com/1.jpg', 'http://example.com/2.jpg'],
-            params: ['format' => 'png', 'crop' => true, 'padding' => 8, 'model' => 'muse', 'background' => null],
+            params: ['format' => 'png', 'crop' => true, 'padding' => 8, 'model' => 'muse', 'shift' => -1.5, 'background' => null],
             webhookUrl: 'https://example.com/hooks/photos',
         );
 
@@ -51,7 +51,7 @@ final class JobsTest extends ClientTestCase
         self::assertSame(
             '{"operation":"remove-background",'
             . '"inputs":["https://example.com/1.jpg","http://example.com/2.jpg"],'
-            . '"params":{"format":"png","crop":true,"padding":8,"model":"muse"},'
+            . '"params":{"format":"png","crop":true,"padding":8,"model":"muse","shift":-1.5},'
             . '"webhook_url":"https://example.com/hooks/photos"}',
             $sent->request->body,
         );

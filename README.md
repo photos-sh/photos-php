@@ -146,6 +146,23 @@ $portrait = $photos->removeBackground('model.jpg', model: 'muse');
 `model` is a string, so a model the API adds later works without a new
 version of this library. It works with `studio`.
 
+The cutout's edge can be tuned. Left out, each of these leaves the edge as the
+API draws it by default.
+
+| Option | Range | What it does |
+|---|---|---|
+| `shift` | −10 to 10 px | Moves the edge: inward when negative, outward when positive. −1 to −2 trims the light rim a dark product shows on a dark page. A part thinner than twice an inward shift goes. |
+| `hardness` | 0 to 100 | Makes the edge crisper, after the feather: about a pixel wide at 100, still smooth. It sharpens a light rim too, so on a dark page pair it with a small negative `shift`. |
+| `smooth` | 0 to 10 | Irons out ripples in the outline. From about 4 it rounds small corners and can break thin parts such as a wire stand. |
+| `feather` | 0 to 10 px | How soft the edge is. Left out, it grows with the photo (1.4 px at 2000 px); 0 is the model's hard edge. |
+| `decontaminate` | true or false | Cleans the old background's colour out of the soft edge, which the API does by default. `false` keeps the photo's own colours there. |
+| `solidify` | true or false | Makes semi-transparent areas inside the subject opaque, for an opaque product. Wrong for glass, smoke or hair. |
+
+```php
+// A dark bottle for a dark page: trim the light rim, and make the edge crisp.
+$bottle = $photos->removeBackground('bottle.jpg', shift: -1.5, hardness: 50);
+```
+
 ### Resize, convert and compress
 
 ```php
@@ -650,8 +667,9 @@ The operations are `run`, `remove-background`, `resize`, `upscale`, `ocr`,
 `palette`, `watermark`, `expand`, `vectorize`, `faces`, `blur-faces`,
 `id-photo`, `denoise`, `colorize`, `select`, `restore-faces` and `caption`.
 A job item is one image, so a `watermark` job takes `text` only and a
-`remove-background` job no background image (`model` and `studio` it takes as
-the method does: `params: ['model' => 'lumen', 'studio' => true]`).
+`remove-background` job no background image (`model`, `studio` and the edge
+options it takes as the method does:
+`params: ['model' => 'lumen', 'studio' => true, 'shift' => -1.5]`).
 
 An option that repeats is a list. For `select`, each point is the string
 `"x,y"`:

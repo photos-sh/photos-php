@@ -126,6 +126,32 @@ final class ImageMethodsTest extends ClientTestCase
         self::assertSame('', $this->sent()->query, 'left out, so the API uses its default');
     }
 
+    public function testRemoveBackgroundSendsTheEdgeOptions(): void
+    {
+        $photos = $this->client(FakeTransport::image('cutout'), FakeTransport::image('cutout'), FakeTransport::image('cutout'));
+
+        $result = $photos->removeBackground(
+            self::fixture('product.png'),
+            feather: 2,
+            smooth: 2.5,
+            shift: -1.5,
+            hardness: 50,
+            decontaminate: true,
+            solidify: true,
+        );
+
+        $sent = $this->sent();
+        self::assertSame('/api/v1/remove-background', $sent->path);
+        self::assertSame('feather=2&smooth=2.5&shift=-1.5&hardness=50&decontaminate=true&solidify=true', $sent->query);
+        self::assertSame('cutout', $result->bytes);
+
+        $photos->removeBackground(self::fixture('product.png'), feather: 0, decontaminate: false);
+        self::assertSame('feather=0&decontaminate=false', $this->sent()->query, 'a zero and a false are values, and are sent');
+
+        $photos->removeBackground(self::fixture('product.png'), feather: null, shift: null, decontaminate: null);
+        self::assertSame('', $this->sent()->query, 'left out, so the API draws its default edge');
+    }
+
     public function testRemoveBackgroundSendsTheBackgroundImageAsASecondPart(): void
     {
         $photos = $this->client(FakeTransport::image(), FakeTransport::image());

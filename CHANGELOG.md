@@ -6,6 +6,20 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## 1.4.0 (2026-11-23)
+
+- `removeBackground` takes the cutout's edge: `shift` moves it, in pixels
+  (negative inward, which trims the light rim a dark product shows on a dark
+  page; −10 to 10), `hardness` makes it crisper (0 to 100, about a pixel wide
+  at 100), `smooth` irons out ripples in the outline (0 to 10), and `feather`
+  is how soft it is, in pixels (0 to 10; 0 is the model's hard edge).
+- `removeBackground` takes `decontaminate` (false keeps the photo's own
+  colours in the soft edge, which the API otherwise cleans of the old
+  background) and `solidify` (makes semi-transparent areas inside the subject
+  opaque).
+- Each is sent only when given, so a call without them is what it was. A
+  `remove-background` job takes them in `params`. Needs engine 0.1.16.
+
 ## 1.3.0 (2026-11-20)
 
 - `removeBackground` takes `model`, the model that finds the subject: `atlas`
